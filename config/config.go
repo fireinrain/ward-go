@@ -5,6 +5,7 @@ import (
 	"log"
 	"net/http"
 	"os"
+	"sync"
 )
 
 const DefaultPort = 8888
@@ -13,6 +14,7 @@ const ConfigFile = "setup.ini"
 var FirstStartUp = true
 var GlobalConfig ServerConfig
 var AppServer *http.Server
+var Wg *sync.WaitGroup = &sync.WaitGroup{}
 
 type Setup struct {
 	ServerName string `ini:"serverName"`
@@ -58,6 +60,14 @@ func (receiver ServerConfig) InitServerConfig() ServerConfig {
 	return config
 }
 
+// RefreshServerConfig
+//
+//	@Description: 刷新配置
+func RefreshServerConfig() {
+	serverConfig := GlobalConfig.InitServerConfig()
+	GlobalConfig = serverConfig
+}
+
 // IsFileExist
 //
 //	@Description: 文件是否存在
@@ -70,4 +80,23 @@ func IsFileExist(path string) bool {
 		return true
 	}
 	return false
+}
+
+// WriteConfig2File
+//
+//	@Description: 将配置写入ini文件
+//	@param serverName
+//	@param theme
+//	@param port
+//	@param configPath
+func WriteConfig2File(serverName string, theme string, port string, configPath string) {
+	empty := ini.Empty()
+	section := empty.Section("setup")
+	section.Key("serverName").SetValue(serverName)
+	section.Key("theme").SetValue(theme)
+	section.Key("port").SetValue(port)
+
+	if err := empty.SaveTo(configPath); err != nil {
+		log.Fatalf("failed to save config file: %v", err)
+	}
 }

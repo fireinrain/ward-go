@@ -1,8 +1,11 @@
 package handler
 
 import (
+	"context"
 	"github.com/gin-gonic/gin"
+	"log"
 	"net/http"
+	"time"
 	"ward-go/config"
 	"ward-go/utils"
 )
@@ -50,14 +53,17 @@ func SetUpHandler(c *gin.Context) {
 		}
 	}
 	//写入配置文件
-	utils.WriteConfig2File(set.ServerName, set.Theme, set.Port, config.ConfigFile)
+	config.WriteConfig2File(set.ServerName, set.Theme, set.Port, config.ConfigFile)
+	config.RefreshServerConfig()
 
 	c.JSON(http.StatusOK, gin.H{
 		"message": "setting saved correctly",
 		"data":    "",
 	})
+	//启动新ginServer
+	go utils.StartGinServer(config.Wg, InitRouter)
 	//重新启动web
-	utils.GraceStopGin(config.AppServer)
+	go GraceStopGin(config.AppServer)
 
 }
 
@@ -76,4 +82,34 @@ func SetUpPageHandler(c *gin.Context) {
 			"title": "404 page",
 		})
 	}
+}
+
+// GraceStopGin
+//
+//	@Description: 关闭Gin
+//	@param srv
+func GraceStopGin(srv *http.Server) {
+	// kill (no param) default send syscanll.SIGTERM
+	// kill -2 is syscall.SIGINT
+	// kill -9 is syscall. SIGKILL but can"t be catch, so don't need add it
+	log.Println("Shutdown Server ...")
+
+	ctx, cancel := context.WithTimeout(context.Background(), 2*time.Second)
+	defer cancel()
+	if err := srv.Shutdown(ctx); err != nil {
+		log.Fatal("Server Shutdown:", err)
+	}
+	// catching ctx.Done(). timeout of 5 seconds.
+loop:
+	for {
+		select {
+		case <-ctx.Done():
+			log.Println("timeout of 5 seconds.")
+			break loop
+		default:
+			time.Sleep(1 * time.Second)
+		}
+	}
+
+	log.Println("Server exiting")
 }
