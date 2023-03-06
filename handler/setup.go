@@ -57,7 +57,7 @@ func SetUpHandler(c *gin.Context) {
 		"data":    "",
 	})
 	//重新启动web
-	go utils.GraceStopGin(config.AppServer)
+	utils.GraceStopGin(config.AppServer)
 
 }
 
