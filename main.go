@@ -1,36 +1,72 @@
 package main
 
 import (
+	"context"
+	"fmt"
 	"github.com/gin-gonic/gin"
+	"log"
 	"net/http"
+	"os"
+	"os/signal"
+	"sync"
+	"syscall"
+	"time"
+	"ward-go/config"
+	"ward-go/router"
 )
 
-func main() {
+// StartGinServer
+//
+//	@Description: 启动Gin服务器
+func StartGinServer() {
 	// 初始化一个http服务对象
 	app := gin.Default()
 
 	// 首先加载templates目录下面的所有模版文件，模版文件扩展名随意
 	app.LoadHTMLGlob("website/templates/*")
 	app.Static("/static", "website/static")
+	router.InitRouter(app)
 
-	// 设置一个get请求的路由，url为/ping, 处理函数（或者叫控制器函数）是一个闭包函数。
-	app.GET("/ping", func(c *gin.Context) {
-		// 通过请求上下文对象Context, 直接往客户端返回一个json
-		c.JSON(200, gin.H{
-			"message": "pong",
-		})
-	})
+	// 监听并在 0.0.0.0:8888 上启动服务
+	addr := fmt.Sprintf(":%d", config.GlobalConfig.Setup.Port)
+	srv := &http.Server{
+		Addr:    addr,
+		Handler: app,
+	}
+	go func() {
+		// service connections
+		if err := srv.ListenAndServe(); err != nil && err != http.ErrServerClosed {
+			log.Fatalf("listen: %s\n", err)
+		}
+	}()
 
-	// 绑定一个url路由 /index
-	app.GET("/", func(c *gin.Context) {
-		// 通过HTML函数返回html代码
-		// 第二个参数是模版文件名字
-		// 第三个参数是map类型，代表模版参数
-		// gin.H 是map[string]interface{}类型的别名
-		c.HTML(http.StatusOK, "index.html", gin.H{
-			"title": "Main website",
-		})
-	})
+	// Wait for interrupt signal to gracefully shutdown the server with
+	// a timeout of 5 seconds.
+	quit := make(chan os.Signal)
+	// kill (no param) default send syscanll.SIGTERM
+	// kill -2 is syscall.SIGINT
+	// kill -9 is syscall. SIGKILL but can"t be catch, so don't need add it
+	signal.Notify(quit, syscall.SIGINT, syscall.SIGTERM)
+	<-quit
+	log.Println("Shutdown Server ...")
 
-	app.Run("0.0.0.0:8888") // 监听并在 0.0.0.0:8080 上启动服务
+	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+	defer cancel()
+	if err := srv.Shutdown(ctx); err != nil {
+		log.Fatal("Server Shutdown:", err)
+	}
+	// catching ctx.Done(). timeout of 5 seconds.
+	select {
+	case <-ctx.Done():
+		log.Println("timeout of 5 seconds.")
+	}
+	log.Println("Server exiting")
+}
+
+func main() {
+	waitGroup := sync.WaitGroup{}
+	waitGroup.Add(1)
+	StartGinServer()
+	waitGroup.Wait()
+
 }
