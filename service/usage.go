@@ -2,7 +2,6 @@ package service
 
 import (
 	"errors"
-	"fmt"
 	"github.com/shirou/gopsutil/cpu"
 	"github.com/shirou/gopsutil/disk"
 	"github.com/shirou/gopsutil/mem"
@@ -67,10 +66,16 @@ func GetUsageInfoService() ServerUsageInfo {
 		if err != nil {
 			log.Println("get disk path error on windows:", err)
 		}
-		fmt.Println(paths)
+		usage := CalculateDiskUsage(paths)
+		usageInfo.Storage = usage
 	}
 	if runtime.GOOS == "linux" {
-
+		usage, err := disk.Usage("/")
+		if err != nil {
+			log.Println("get disk path error on linux:", err)
+		}
+		diskUsage := strconv.FormatFloat(usage.UsedPercent, 'f', 0, 64)
+		usageInfo.Storage = diskUsage
 	}
 	if runtime.GOOS == "darwin" {
 		diskPaths, err := GetPlatformDiskPaths(2)
