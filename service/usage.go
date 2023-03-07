@@ -70,6 +70,11 @@ func GetUsageInfoService() ServerUsageInfo {
 		usageInfo.Storage = usage
 	}
 	if runtime.GOOS == "linux" {
+		// TODO ignore this
+		_, err := GetPlatformDiskPaths(PlatformLinux)
+		if err != nil {
+			log.Println("get disk path error on linux:", err)
+		}
 		usage, err := disk.Usage("/")
 		if err != nil {
 			log.Println("get disk path error on linux:", err)
