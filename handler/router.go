@@ -10,4 +10,6 @@ func InitRouter(app *gin.Engine) {
 	app.POST("/api/setup", SetUpHandler)
 	app.GET("/api/info", InfoHandler)
 	app.GET("/api/usage", UsageHandler)
+	app.GET("/error/404", Error404PageHandler)
+	app.GET("/error/500", Error500PageHandler)
 }

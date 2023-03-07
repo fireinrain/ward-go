@@ -71,12 +71,13 @@ func SetUpHandler(c *gin.Context) {
 func SetUpPageHandler(c *gin.Context) {
 	if config.FirstStartUp {
 		c.HTML(http.StatusOK, "setup.html", gin.H{
-			"title": "Setup ward-go",
+			"title": "Welcome to ward-go setup page",
 		})
 	} else {
 		//404
 		c.HTML(http.StatusOK, "404.html", gin.H{
-			"title": "404 page",
+			"title": "404 error page",
+			"theme": config.GlobalConfig.Setup.Theme,
 		})
 	}
 }
