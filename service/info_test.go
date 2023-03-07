@@ -14,7 +14,7 @@ func TestGetServerInfoService(t *testing.T) {
 	}
 	fmt.Printf("%v", info)
 
-	fmt.Println("service:", service)
+	fmt.Printf("service: %v\n", service)
 
 }
 

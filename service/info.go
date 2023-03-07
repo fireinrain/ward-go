@@ -192,7 +192,7 @@ func GetRamType() string {
 	ramType := "Unknown"
 
 	if runtime.GOOS == "windows" {
-		out, err := exec.Command("powershell", "-Command", "Get-WmiObject Win32_PhysicalMemory | Select-Object MemoryType").Output()
+		out, err := exec.Command("powershell", "wmic", "memorychip", "get SMBIOSMemoryType").Output()
 		if err != nil {
 			fmt.Printf("error running powershell: %v\n", err)
 			return ramType
@@ -200,13 +200,28 @@ func GetRamType() string {
 
 		lines := strings.Split(string(out), "\n")
 		for _, line := range lines {
-			if strings.Contains(line, "MemoryType") {
-				value := strings.TrimSpace(strings.Split(line, ":")[1])
-				if value == "21" {
-					ramType = "DDR4"
-				} else if value == "24" {
-					ramType = "DDR3"
-				}
+			if line == "" {
+				continue
+			}
+			//转换为数字
+			ramTypeNum, err := strconv.Atoi(strings.TrimSpace(line))
+			if err != nil {
+				continue
+			}
+			if ramTypeNum == 21 {
+				ramType = "DDR2"
+				break
+			}
+			if ramTypeNum == 22 {
+				ramType = "DDR2 FB-DIMM"
+				break
+			}
+			if ramTypeNum == 24 {
+				ramType = "DDR3"
+				break
+			}
+			if ramTypeNum == 26 {
+				ramType = "DDR4"
 				break
 			}
 		}
