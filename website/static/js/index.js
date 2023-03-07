@@ -30,7 +30,9 @@ function indexInitialization()
     usageXHR = new XMLHttpRequest();
     infoXHR = new XMLHttpRequest();
 
-    sendUsageRequest();
+    setInterval(function (){
+        sendUsageRequest();
+    },1200)
 
     setInterval(function()
     {
@@ -97,11 +99,8 @@ function sendUsageRequest()
         if ((this.readyState == 4) && (this.status == 200))
         {
             let response = JSON.parse(this.response);
-
             labelsTick(response);
             chartTick(response);
-
-            sendUsageRequest();
         }
     }
 

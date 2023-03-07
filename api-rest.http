@@ -1,0 +1,8 @@
+GET localhost:4500/api/usage
+Content-Type: application/json
+
+
+###
+
+GET localhost:4500/api/info
+Content-Type: application/json
