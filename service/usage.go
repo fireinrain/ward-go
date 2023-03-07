@@ -17,7 +17,7 @@ import (
 
 const PlatformWindows = 0
 const PlatformLinux = 1
-const PlatformOSX = 2
+const PlatformDarwin = 2
 
 // ServerUsageInfo
 // @Description: 服务器资源使用信息
@@ -62,7 +62,7 @@ func GetUsageInfoService() ServerUsageInfo {
 	if runtime.GOOS == "windows" {
 		//log.Println("current platform is windows")
 		//获取所有的磁盘 然后计算总usage
-		paths, err := GetPlatformDiskPaths(0)
+		paths, err := GetPlatformDiskPaths(PlatformWindows)
 		if err != nil {
 			log.Println("get disk path error on windows:", err)
 		}
@@ -78,12 +78,12 @@ func GetUsageInfoService() ServerUsageInfo {
 		usageInfo.Storage = diskUsage
 	}
 	if runtime.GOOS == "darwin" {
-		diskPaths, err := GetPlatformDiskPaths(2)
+		diskPaths, err := GetPlatformDiskPaths(PlatformDarwin)
 		if err != nil {
 			log.Println("get disk path error on macos:", err)
 		}
 		// diff to the real diskPaths
-		diskPaths = ExtractRealDiskPath(diskPaths)
+		diskPaths = ExtractRealDiskPathForDarwin(diskPaths)
 
 		var realDiskPath []string
 		for _, diskPath := range diskPaths {
@@ -236,7 +236,7 @@ func GetDiskMountedPath(diskPath string) (string, error) {
 	return mountPoint, nil
 }
 
-// ExtractRealDiskPath
+// ExtractRealDiskPathForDarwin
 //
 //	@Description: 抽取真是的disk path
 //
@@ -244,7 +244,7 @@ func GetDiskMountedPath(diskPath string) (string, error) {
 //
 //	@param paths
 //	@return []string
-func ExtractRealDiskPath(paths []string) []string {
+func ExtractRealDiskPathForDarwin(paths []string) []string {
 	var result []string
 	m := map[string]byte{}
 
