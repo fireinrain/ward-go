@@ -88,12 +88,12 @@
     --left-uptime-squares-grid: 9.250rem;
     --left-uptime-rectangle-grid: 2.781rem;
     --left-chart-label: 1.500rem;
-    --left-chart-triangle-grid-first: 34.375rem;
-    --left-chart-triangle-grid-second: 38.250rem;
-    --left-chart-triangle-grid-third: 42.125rem;
-    --left-chart-rectangle-grid-first: 33.250rem;
-    --left-chart-rectangle-grid-second: 37.125rem;
-    --left-chart-rectangle-grid-third: 41.000rem;
+    --left-chart-triangle-grid-first: 56.375rem;
+    --left-chart-triangle-grid-second: 60.250rem;
+    --left-chart-triangle-grid-third: 64.125rem;
+    --left-chart-rectangle-grid-first: 55.250rem;
+    --left-chart-rectangle-grid-second: 59.125rem;
+    --left-chart-rectangle-grid-third: 63.000rem;
     --left-chart-container: 1.500rem;
     --left-error-div: 13.250rem;
     --left-code: 1.813rem;
@@ -204,7 +204,7 @@
     --width-values-grid-div: 3.750rem;
     --width-labels-grid-div: 3.750rem;
     --width-chart-rectangle-grid-div: 3.125rem;
-    --width-chart-container: 42.625rem;
+    --width-chart-container: 66.225rem;
     --width-error-img: 19.313rem;
     --width-error-div: 23.875rem;
     --width-advice: 23.875rem;;
