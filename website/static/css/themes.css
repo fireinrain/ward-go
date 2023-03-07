@@ -69,6 +69,10 @@ html[theme = "light"]
     --background-hw-logo-first: var(--blue-light);
     --background-hw-logo-second: var(--red-light);
     --background-hw-logo-third: var(--green-light);
+    --background-hw-logo-fourth: var(--purple-light);
+    --background-hw-logo-fifth: var(--gray-light);
+
+
     --background-card-body-squares-grid-first-div: var(--blue-light);
     --background-card-body-squares-grid-second-div: var(--red-light);
     --background-card-body-squares-grid-third-div: var(--green-light);

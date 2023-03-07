@@ -45,5 +45,10 @@
     --green: rgba(8, 193, 141, 1);
 
     /* purple */
-    --purple-light: rgba(228, 227, 239, 1);
+    --purple-light: rgb(229, 187, 245);
+    --purple: rgba(189,16,224,1);
+
+    /* 天蓝色 */
+    --gray-light: rgb(236, 192, 165);
+    --gray: rgba(139,87,42,1);
 }

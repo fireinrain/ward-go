@@ -384,7 +384,7 @@ body
 /* index elements */
 .index
 {
-    margin-top: calc((100vh / 2) - (var(--height-index-xl) / 2));
+    margin-top: calc((75vh / 2) - (var(--height-index-xl) / 2));
     max-width: var(--max-width-index-xl);
     min-width: var(--min-width-index-xl);
 }
@@ -467,6 +467,14 @@ body
 .hw-logo.third
 {
     background: var(--background-hw-logo-third);
+}
+.hw-logo.fourth
+{
+    background: var(--background-hw-logo-fourth);
+}
+.hw-logo.fifth
+{
+    background: var(--background-hw-logo-fifth);
 }
 
 .label-hw-info
