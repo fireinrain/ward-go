@@ -60,7 +60,7 @@ function showCards() {
     setTimeout(function () {
       cards[randomSequenceArray[i]].style.opacity = "1";
 
-      if (randomSequenceArray[i] == 4) {
+      if (randomSequenceArray[i] == 6) {
         versionLabel.style.opacity = "1";
       }
     }, 70 * i);
@@ -73,8 +73,8 @@ function showCards() {
 function getRandomSequenceArray() {
   let buffer = [];
 
-  while (buffer.length < 5) {
-    let randomNumber = Math.floor(Math.random() * 5);
+  while (buffer.length < 7) {
+    let randomNumber = Math.floor(Math.random() * 7);
 
     if ((buffer.indexOf(randomNumber) === -1)) {
       buffer.push(randomNumber);
