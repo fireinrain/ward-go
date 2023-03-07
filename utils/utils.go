@@ -17,8 +17,9 @@ import (
 func StartGinServer(wg *sync.WaitGroup, routerFunc func(engine *gin.Engine)) {
 	wg.Add(1)
 	// 初始化一个http服务对象
+	//gin.SetMode(gin.ReleaseMode)
+	gin.SetMode(gin.DebugMode)
 	app := gin.Default()
-	gin.SetMode(gin.ReleaseMode)
 
 	// 首先加载templates目录下面的所有模版文件，模版文件扩展名随意
 	app.LoadHTMLGlob("website/templates/*")
