@@ -32,12 +32,12 @@ function indexInitialization()
 
     setInterval(function (){
         sendUsageRequest();
-    },1200)
+    },2100)
 
     setInterval(function()
     {
         sendInfoRequest();
-    }, 1000);
+    }, 2800);
 
     firstControl.addEventListener("click", function(event) {changePage(event.target || event.srcElement)});
     secondControl.addEventListener("click", function(event) {changePage(event.target || event.srcElement)});

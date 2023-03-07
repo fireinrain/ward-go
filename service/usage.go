@@ -2,6 +2,7 @@ package service
 
 import (
 	"errors"
+	"fmt"
 	"github.com/shirou/gopsutil/cpu"
 	"github.com/shirou/gopsutil/disk"
 	"github.com/shirou/gopsutil/mem"
@@ -64,12 +65,17 @@ func GetUsageInfoService() ServerUsageInfo {
 		//获取所有的磁盘 然后计算总usage
 	}
 	if runtime.GOOS == "linux" {
+		paths, err := GetPlatformDiskPaths(0)
+		if err != nil {
+			log.Println("get disk path error on windows:", err)
+		}
+		fmt.Println(paths)
 
 	}
 	if runtime.GOOS == "darwin" {
 		diskPaths, err := GetPlatformDiskPaths(2)
 		if err != nil {
-			log.Println("get disk path error:", err)
+			log.Println("get disk path error on macos:", err)
 		}
 		// diff to the real diskPaths
 		diskPaths = ExtractRealDiskPath(diskPaths)
@@ -83,20 +89,7 @@ func GetUsageInfoService() ServerUsageInfo {
 			}
 			realDiskPath = append(realDiskPath, path)
 		}
-
-		var diskTotal uint64 = 0
-		var diskUsed uint64 = 0
-		for _, path := range realDiskPath {
-			diskInfo, err := disk.Usage(path)
-
-			if err != nil {
-				log.Println("get disk usage error:", err)
-				return usageInfo
-			}
-			diskTotal += diskInfo.Total
-			diskUsed += diskInfo.Used
-		}
-		diskUsage := strconv.FormatFloat((float64(diskUsed)/float64(diskTotal))*100.0, 'f', 0, 64)
+		diskUsage := CalculateDiskUsage(realDiskPath)
 		//fmt.Println(diskUsage)
 		//fmt.Printf("total space: %v bytes\n", diskInfo.Total)
 		//fmt.Printf("free space: %v bytes\n", diskInfo.Free)
@@ -106,7 +99,6 @@ func GetUsageInfoService() ServerUsageInfo {
 		//diskUsage := strconv.FormatFloat(diskInfo.UsedPercent, 'f', 0, 64)
 		usageInfo.Storage = diskUsage
 	}
-
 	return usageInfo
 }
 
@@ -182,9 +174,21 @@ func GetPlatformDiskPaths(platform int) ([]string, error) {
 //	@Description: 计算磁盘使用
 //	@param diskPath
 //	@return float64
-func CalculateDiskUsage(diskPath []string) float64 {
+func CalculateDiskUsage(diskPaths []string) string {
+	var diskTotal uint64 = 0
+	var diskUsed uint64 = 0
+	for _, path := range diskPaths {
+		diskInfo, err := disk.Usage(path)
 
-	return 2.34
+		if err != nil {
+			log.Println("get disk usage error:", err)
+			return "0"
+		}
+		diskTotal += diskInfo.Total
+		diskUsed += diskInfo.Used
+	}
+	diskUsage := strconv.FormatFloat((float64(diskUsed)/float64(diskTotal))*100.0, 'f', 0, 64)
+	return diskUsage
 }
 
 // GetDiskMountedPath
