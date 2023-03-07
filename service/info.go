@@ -4,7 +4,10 @@ import (
 	"fmt"
 	"github.com/shirou/gopsutil/cpu"
 	"github.com/shirou/gopsutil/host"
+	"github.com/shirou/gopsutil/mem"
 	"log"
+	"os/exec"
+	"runtime"
 	"strconv"
 	"strings"
 	"ward-go/config"
@@ -105,24 +108,39 @@ func GetServerInfoService() ServerInfo {
 	mhz := info[0].Mhz
 	ghz := mhz / 1000.0
 	ghzStr := fmt.Sprintf("%.1f", ghz)
-	serverInfo.Processor.ClockSpeed = ghzStr
+	serverInfo.Processor.ClockSpeed = ghzStr + "GHz"
 
 	//cpu架构
-	stat, err := host.Info()
+	host, err := host.Info()
 	if err != nil {
 		log.Println("error getting cpu info: ", err)
 		return serverInfo
 	}
-	serverInfo.Processor.BitDepth = stat.KernelArch
+	serverInfo.Processor.BitDepth = host.KernelArch
 	//cpu 核心
 	counts, err := cpu.Counts(true)
 	if err != nil {
 		log.Println("error getting cpu counts: ", err)
 		return serverInfo
 	}
-	serverInfo.Processor.CoreCount = strconv.Itoa(counts)
+	serverInfo.Processor.CoreCount = strconv.Itoa(counts) + "Cores"
 
 	//获取machine相关信息
+	opSystem := fmt.Sprintf("%s %s,%s", host.Platform, host.PlatformVersion, host.PlatformFamily)
+	serverInfo.Machine.OperatingSystem = opSystem
+	//内存
+	memory, err := mem.VirtualMemory()
+	if err != nil {
+		log.Println("error getting memory info: ", err)
+		return serverInfo
+	}
+	totalRam := float64(memory.Total) / (1024.0 * 1024.0 * 1024.0)
+	gRam := fmt.Sprintf("%.1f", totalRam)
+	serverInfo.Machine.TotalRAM = gRam + "GiB Ram"
+
+	ramType := GetRamType()
+	serverInfo.Machine.RAMTypeOrOSBitDepth = ramType
+	serverInfo.Machine.ProcCount = strconv.FormatUint(host.Procs, 10)
 
 	//获取存储相关信息
 
@@ -160,4 +178,72 @@ func ConvertUptime2Seperate(uptime uint64) []uint64 {
 	result = append(result, minuteLeftSecond)
 
 	return result
+}
+
+type Win32_PhysicalMemory struct {
+	MemoryType uint16
+}
+
+// GetRamType
+//
+//	@Description: 获取ram类型
+//	@return string
+func GetRamType() string {
+	ramType := "Unknown"
+
+	if runtime.GOOS == "windows" {
+		out, err := exec.Command("powershell", "-Command", "Get-WmiObject Win32_PhysicalMemory | Select-Object MemoryType").Output()
+		if err != nil {
+			fmt.Printf("error running powershell: %v\n", err)
+			return ramType
+		}
+
+		lines := strings.Split(string(out), "\n")
+		for _, line := range lines {
+			if strings.Contains(line, "MemoryType") {
+				value := strings.TrimSpace(strings.Split(line, ":")[1])
+				if value == "21" {
+					ramType = "DDR4"
+				} else if value == "24" {
+					ramType = "DDR3"
+				}
+				break
+			}
+		}
+		return ramType
+	}
+	if runtime.GOOS == "linux" {
+		out, err := exec.Command("dmidecode", "-t", "memory").Output()
+		if err != nil {
+			fmt.Printf("error running dmidecode: %v\n", err)
+			return ramType
+		}
+
+		lines := strings.Split(string(out), "\n")
+		for _, line := range lines {
+			if strings.Contains(line, "Type:") && strings.Contains(line, "DDR") {
+				ramType = strings.TrimSpace(strings.Split(line, ":")[1])
+				break
+			}
+		}
+		return ramType
+	}
+	if runtime.GOOS == "darwin" {
+		out, err := exec.Command("system_profiler", "SPMemoryDataType").Output()
+		if err != nil {
+			fmt.Printf("error running system_profiler: %v\n", err)
+			return ramType
+		}
+		lines := strings.Split(string(out), "\n")
+		for _, line := range lines {
+			if strings.Contains(line, "Type:") && strings.Contains(line, "DDR") {
+				ramType = strings.TrimSpace(strings.Split(line, ":")[1])
+				break
+			}
+		}
+		return ramType
+	}
+
+	return ramType
+
 }
