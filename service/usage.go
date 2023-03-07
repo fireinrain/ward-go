@@ -63,13 +63,13 @@ func GetUsageInfoService() ServerUsageInfo {
 	if runtime.GOOS == "windows" {
 		//log.Println("current platform is windows")
 		//获取所有的磁盘 然后计算总usage
-	}
-	if runtime.GOOS == "linux" {
 		paths, err := GetPlatformDiskPaths(0)
 		if err != nil {
 			log.Println("get disk path error on windows:", err)
 		}
 		fmt.Println(paths)
+	}
+	if runtime.GOOS == "linux" {
 
 	}
 	if runtime.GOOS == "darwin" {
