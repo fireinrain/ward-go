@@ -36,8 +36,17 @@ func TestGetMacosDiskCountAndTotalSize(t *testing.T) {
 }
 
 func TestGetServerInfo(t *testing.T) {
-	info := &ServerInfo{}
-	serverInfo := GetServerInfo(info)
+	_ = &ServerInfo{}
+	serverInfo := GetServerInfo()
 	fmt.Println(serverInfo.Storage.MainStorage)
 
+}
+
+func TestMapKeyExist(t *testing.T) {
+	dict := map[string]int{"key1": 1, "key2": 2}
+	if value, ok := dict["key1"]; ok {
+		fmt.Printf(string(value))
+	} else {
+		fmt.Println("key1 不存在")
+	}
 }
