@@ -24,3 +24,13 @@ func TestConvertUptime2Seperate(t *testing.T) {
 		fmt.Println(value)
 	}
 }
+
+func TestGetMainHardDriveDiskName(t *testing.T) {
+	name := GetMainHardDriveInfo()
+	fmt.Println(name)
+}
+
+func TestGetMacosDiskCountAndTotalSize(t *testing.T) {
+	size, i := GetMacosDiskCountAndTotalSize()
+	fmt.Println(size, i)
+}

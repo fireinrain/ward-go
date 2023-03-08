@@ -7,6 +7,7 @@ import (
 	"github.com/shirou/gopsutil/mem"
 	"log"
 	"os/exec"
+	"regexp"
 	"runtime"
 	"strconv"
 	"strings"
@@ -108,7 +109,7 @@ func GetServerInfoService() ServerInfo {
 	mhz := info[0].Mhz
 	ghz := mhz / 1000.0
 	ghzStr := fmt.Sprintf("%.1f", ghz)
-	serverInfo.Processor.ClockSpeed = ghzStr + "GHz"
+	serverInfo.Processor.ClockSpeed = ghzStr + " GHz"
 
 	//cpu架构
 	host, err := host.Info()
@@ -123,7 +124,7 @@ func GetServerInfoService() ServerInfo {
 		log.Println("error getting cpu counts: ", err)
 		return serverInfo
 	}
-	serverInfo.Processor.CoreCount = strconv.Itoa(counts) + "Cores"
+	serverInfo.Processor.CoreCount = strconv.Itoa(counts) + " Cores"
 
 	//获取machine相关信息
 	opSystem := fmt.Sprintf("%s %s,%s", host.Platform, host.PlatformVersion, host.PlatformFamily)
@@ -143,11 +144,18 @@ func GetServerInfoService() ServerInfo {
 	serverInfo.Machine.ProcCount = strconv.FormatUint(host.Procs, 10)
 
 	//获取存储相关信息
+	driveInfo := GetMainHardDriveInfo()
+	serverInfo.Storage = driveInfo
 
 	//获取启动时长信息
+	uptime := host.Uptime
+	uptime2Seperate := ConvertUptime2Seperate(uptime)
+	serverInfo.Uptime.Days = strconv.FormatUint(uptime2Seperate[0], 10)
+	serverInfo.Uptime.Hours = strconv.FormatUint(uptime2Seperate[1], 10)
+	serverInfo.Uptime.Minutes = strconv.FormatUint(uptime2Seperate[2], 10)
+	serverInfo.Uptime.Seconds = strconv.FormatUint(uptime2Seperate[3], 10)
 
 	return serverInfo
-
 }
 
 func ConvertUptime2Seperate(uptime uint64) []uint64 {
@@ -178,10 +186,6 @@ func ConvertUptime2Seperate(uptime uint64) []uint64 {
 	result = append(result, minuteLeftSecond)
 
 	return result
-}
-
-type Win32_PhysicalMemory struct {
-	MemoryType uint16
 }
 
 // GetRamType
@@ -258,7 +262,152 @@ func GetRamType() string {
 		}
 		return ramType
 	}
-
 	return ramType
+}
 
+// GetMainHardDriveInfo
+//
+//	@Description: 获取主存储名
+//	@return string
+func GetMainHardDriveInfo() Storage {
+	storage := Storage{
+		MainStorage: "Unknown",
+		Total:       "Unknown",
+		DiskCount:   "Unknown",
+		SwapAmount:  "Unknown",
+	}
+	if runtime.GOOS == "windows" {
+
+	}
+	if runtime.GOOS == "linux" {
+
+	}
+	if runtime.GOOS == "darwin" {
+		out, err := exec.Command("diskutil", "info", "/").Output()
+		var mainStorage string
+		if err != nil {
+			fmt.Printf("error running diskutil: %v\n", err)
+		} else {
+			lines := strings.Split(string(out), "\n")
+			for _, line := range lines {
+				if strings.Contains(line, "Volume Name:") {
+					segments := strings.Split(line, ":")
+					mainStorage = strings.TrimSpace(segments[len(segments)-1])
+					continue
+				}
+
+				//ssd
+				if strings.Contains(line, "Solid State:") {
+					segments := strings.Split(line, ":")
+					isSSD := strings.TrimSpace(segments[len(segments)-1])
+					if isSSD == "Yes" {
+						mainStorage = mainStorage + "-SSD"
+					} else {
+						mainStorage = mainStorage + "-HDD"
+					}
+					storage.MainStorage = mainStorage
+					continue
+				}
+			}
+		}
+		//get mainstorage swap size
+		output2, err2 := exec.Command("sysctl", "vm.swapusage").Output()
+		if err2 != nil {
+			fmt.Printf("error running sysctl: %v\n", err)
+		} else {
+			lines := strings.Split(string(output2), "\n")
+			for _, line := range lines {
+				if strings.Contains(line, "total = ") {
+					segments := strings.Split(line, " ")
+					swapSize := strings.TrimSpace(segments[3])
+					swapSize = strings.Replace(swapSize, "M", "", 1)
+					//convertGB
+					swapSizeFloat, err := strconv.ParseFloat(swapSize, 2)
+					if err != nil {
+						fmt.Printf("convert swap size error: %s", err)
+					} else {
+						f := swapSizeFloat / 1024.0
+						result := fmt.Sprintf("%.1f", f)
+						storage.SwapAmount = result + " Gib Swap"
+						break
+					}
+				}
+			}
+		}
+		diskCount, totalSize := GetMacosDiskCountAndTotalSize()
+		storage.DiskCount = strconv.Itoa(diskCount) + " Disks"
+		storage.Total = strconv.FormatFloat(totalSize, 'f', 1, 64) + " Gib Total"
+	}
+
+	return storage
+}
+
+// GetMacosDiskCountAndTotalSize
+//
+//	@Description: 获取macos磁盘数量
+//	@return int
+func GetMacosDiskCountAndTotalSize() (int, float64) {
+	// 在输入字符串中查找匹配正则表达式的子字符串
+	diskCount := 0
+	//GB 格式 保留一位小数
+	totalSizeCount := 0.0
+
+	re := regexp.MustCompile(`[\*\+]\s*(\d+\.\d+\s*[KMGTP]B)`)
+
+	output, err := exec.Command("diskutil", "list").Output()
+	if err != nil {
+		fmt.Printf("error running sysctl: %v\n", err)
+	} else {
+		lines := strings.Split(string(output), "\n")
+		for _, line := range lines {
+			if strings.HasPrefix(line, "/dev/disk") {
+				if strings.HasPrefix(line, "/dev/disk0") {
+					continue
+				}
+				diskCount += 1
+			}
+			//磁盘容量
+			if strings.HasPrefix(line, "   0:") {
+				if strings.Contains(line, "GUID_partition_scheme") {
+					continue
+				}
+				match := re.FindStringSubmatch(line)
+				diskSizeStr := match[1]
+				size, err := Convert2EqualGbSize(diskSizeStr)
+				if err == nil {
+					totalSizeCount += size
+				}
+			}
+		}
+	}
+	return diskCount, totalSizeCount
+}
+
+// Convert2EqualGbSize
+//
+//	@Description: 将容量字符串转换为GB 保留小数点一位
+//	@param sizeStr
+//	@return float64
+func Convert2EqualGbSize(sizeStr string) (float64, error) {
+	sizeStr = strings.TrimSpace(sizeStr)
+	suffixes := map[string]float64{
+		"KB": 1 / (1024.0 * 1024),
+		"MB": 1 / 1024,
+		"GB": 1,
+		"TB": 1024,
+		"PB": 1024 * 1024,
+	}
+
+	for suffix, factor := range suffixes {
+		if strings.HasSuffix(sizeStr, suffix) {
+			trimSuffix := strings.TrimSuffix(sizeStr, suffix)
+			trimSuffix = strings.TrimSpace(trimSuffix)
+			value, err := strconv.ParseFloat(trimSuffix, 64)
+			if err != nil {
+				return 0, err
+			}
+			return value * factor, nil
+		}
+	}
+	return 0, fmt.Errorf("invalid size suffix")
 }
