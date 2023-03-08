@@ -232,7 +232,6 @@ func GetDiskMountedPath(diskPath string) (string, error) {
 			break
 		}
 	}
-
 	if mountPoint == "" {
 		log.Println("disk is not currently mounted")
 		return "", errors.New("disk is not currently mounted")
