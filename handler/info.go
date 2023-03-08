@@ -7,6 +7,7 @@ import (
 )
 
 func InfoHandler(c *gin.Context) {
-	serverInfo := service.GetServerInfoService()
+	//serverInfo := service.GetServerInfoService()
+	serverInfo := service.GetServerInfo()
 	c.JSON(http.StatusOK, serverInfo)
 }

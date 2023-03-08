@@ -34,3 +34,10 @@ func TestGetMacosDiskCountAndTotalSize(t *testing.T) {
 	size, i := GetMacosDiskCountAndTotalSize()
 	fmt.Println(size, i)
 }
+
+func TestGetServerInfo(t *testing.T) {
+	info := &ServerInfo{}
+	serverInfo := GetServerInfo(info)
+	fmt.Println(serverInfo.Storage.MainStorage)
+
+}

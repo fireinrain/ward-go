@@ -31,6 +31,7 @@ type Processor struct {
 type Machine struct {
 	OperatingSystem     string `json:"operatingSystem"`
 	TotalRAM            string `json:"totalRam"`
+	SwapRAM             string `json:"swapRam"`
 	RAMTypeOrOSBitDepth string `json:"ramTypeOrOSBitDepth"`
 	ProcCount           string `json:"procCount"`
 }
@@ -53,6 +54,119 @@ type Project struct {
 	Version string `json:"version"`
 }
 
+var serverInfo = &ServerInfo{}
+
+func GetServerInfo() ServerInfo {
+	if runtime.GOOS != "windows" && runtime.GOOS != "linux" && runtime.GOOS != "darwin" {
+		log.Fatalf("unsupported OS: %s", runtime.GOOS)
+	}
+	if serverInfo.Project.Version == "" {
+		serverInfo.Project.Version = config.WardGoVserion
+	}
+	if serverInfo.Setup.ServerName == "" {
+		serverInfo.Setup.ServerName = config.GlobalConfig.Setup.ServerName
+	}
+
+	//获取cpu信息
+	if serverInfo.Processor.Name == "" ||
+		serverInfo.Processor.ClockSpeed == "" ||
+		serverInfo.Processor.CoreCount == "" ||
+		serverInfo.Processor.BitDepth == "" {
+		info, err := cpu.Info()
+		if err != nil {
+			log.Println("error getting cpu info: ", err)
+		}
+		if len(info) == 0 {
+			log.Println("no cpu info available...")
+		}
+		//cpu型号
+		cpuName := info[0].ModelName
+		cpuNameSplit := strings.Split(cpuName, "@")
+		cpuName = strings.TrimSpace(cpuNameSplit[0])
+		serverInfo.Processor.Name = cpuName
+		//cpu 频率
+		mhz := info[0].Mhz
+		ghz := mhz / 1000.0
+		ghzStr := fmt.Sprintf("%.1f", ghz)
+		serverInfo.Processor.ClockSpeed = ghzStr + " GHz"
+
+		//cpu架构
+		host, err := host.Info()
+		if err != nil {
+			log.Println("error getting cpu info: ", err)
+		}
+		serverInfo.Processor.BitDepth = host.KernelArch
+		//cpu 核心
+		counts, err := cpu.Counts(true)
+		if err != nil {
+			log.Println("error getting cpu counts: ", err)
+		}
+		serverInfo.Processor.CoreCount = strconv.Itoa(counts) + " Cores"
+
+	}
+
+	if serverInfo.Machine.TotalRAM == "" ||
+		serverInfo.Machine.SwapRAM == "" ||
+		serverInfo.Machine.RAMTypeOrOSBitDepth == "" ||
+		serverInfo.Machine.OperatingSystem == "" {
+		hostinfo, err := host.Info()
+		if err != nil {
+			log.Println("error getting cpu info: ", err)
+		}
+		opSystem := fmt.Sprintf("%s %s,%s", hostinfo.Platform, hostinfo.PlatformVersion, hostinfo.PlatformFamily)
+		serverInfo.Machine.OperatingSystem = opSystem
+		//内存
+		memory, err := mem.VirtualMemory()
+		if err != nil {
+			log.Println("error getting memory info: ", err)
+		}
+		//1024.0 * 1024.0 * 1024.0 = 1073741824
+		totalRam := float64(memory.Total) / 1073741824.0
+		gRam := fmt.Sprintf("%.1f", totalRam)
+		serverInfo.Machine.TotalRAM = gRam + "GiB Ram"
+		// 内存swap大小
+		swapInfo, err := mem.SwapMemory()
+		if err != nil {
+			log.Println("get swap memory failed:", err)
+		}
+		swapRam := float64(swapInfo.Total) / 1073741824.0
+		swapGRam := fmt.Sprintf("%.1f", swapRam)
+		serverInfo.Machine.SwapRAM = swapGRam + "GiB SwapRam"
+		// 内存类型
+		ramType := GetMachineRamType()
+		serverInfo.Machine.RAMTypeOrOSBitDepth = ramType
+	}
+	//进程数量
+	hostinfo, err := host.Info()
+	if err != nil {
+		log.Println("error getting cpu info: ", err)
+	}
+	serverInfo.Machine.ProcCount = strconv.FormatUint(hostinfo.Procs, 10)
+
+	//获取存储相关信息
+	if serverInfo.Storage.MainStorage == "" ||
+		serverInfo.Storage.DiskCount == "" ||
+		serverInfo.Storage.Total == "" ||
+		serverInfo.Storage.SwapAmount == "" {
+		driveInfo := GetMainHardDriveInfo()
+		serverInfo.Storage = driveInfo
+	}
+	//动态变化
+	host, err := host.Info()
+	if err != nil {
+		log.Println("error getting cpu info: ", err)
+	}
+	//获取启动时长信息
+	uptime := host.Uptime
+	uptime2Seperate := ConvertUptime2Seperate(uptime)
+	serverInfo.Uptime.Days = strconv.FormatUint(uptime2Seperate[0], 10)
+	serverInfo.Uptime.Hours = strconv.FormatUint(uptime2Seperate[1], 10)
+	serverInfo.Uptime.Minutes = strconv.FormatUint(uptime2Seperate[2], 10)
+	serverInfo.Uptime.Seconds = strconv.FormatUint(uptime2Seperate[3], 10)
+
+	return *serverInfo
+}
+
 // GetServerInfoService
 //
 //	@Description: 获取服务器状态指标
@@ -68,6 +182,7 @@ func GetServerInfoService() ServerInfo {
 		Machine: Machine{
 			OperatingSystem:     "",
 			TotalRAM:            "",
+			SwapRAM:             "",
 			RAMTypeOrOSBitDepth: "",
 			ProcCount:           "",
 		},
@@ -103,7 +218,7 @@ func GetServerInfoService() ServerInfo {
 	//cpu型号
 	cpuName := info[0].ModelName
 	cpuNameSplit := strings.Split(cpuName, "@")
-	cpuName = cpuNameSplit[0]
+	cpuName = strings.TrimSpace(cpuNameSplit[0])
 	serverInfo.Processor.Name = cpuName
 	//cpu 频率
 	mhz := info[0].Mhz
@@ -135,11 +250,12 @@ func GetServerInfoService() ServerInfo {
 		log.Println("error getting memory info: ", err)
 		return serverInfo
 	}
-	totalRam := float64(memory.Total) / (1024.0 * 1024.0 * 1024.0)
+	//1024.0 * 1024.0 * 1024.0 = 1073741824
+	totalRam := float64(memory.Total) / 1073741824.0
 	gRam := fmt.Sprintf("%.1f", totalRam)
 	serverInfo.Machine.TotalRAM = gRam + "GiB Ram"
-
-	ramType := GetRamType()
+	//
+	ramType := GetMachineRamType()
 	serverInfo.Machine.RAMTypeOrOSBitDepth = ramType
 	serverInfo.Machine.ProcCount = strconv.FormatUint(host.Procs, 10)
 
@@ -158,6 +274,11 @@ func GetServerInfoService() ServerInfo {
 	return serverInfo
 }
 
+// ConvertUptime2Seperate
+//
+//	@Description: 将启动时间秒 转化为天小时分钟秒格式
+//	@param uptime
+//	@return []uint64
 func ConvertUptime2Seperate(uptime uint64) []uint64 {
 	if uptime == 0 {
 		return []uint64{0, 0, 0, 0}
@@ -188,11 +309,11 @@ func ConvertUptime2Seperate(uptime uint64) []uint64 {
 	return result
 }
 
-// GetRamType
+// GetMachineRamType
 //
 //	@Description: 获取ram类型
 //	@return string
-func GetRamType() string {
+func GetMachineRamType() string {
 	ramType := "Unknown"
 
 	if runtime.GOOS == "windows" {
@@ -397,7 +518,6 @@ func Convert2EqualGbSize(sizeStr string) (float64, error) {
 		"TB": 1024,
 		"PB": 1024 * 1024,
 	}
-
 	for suffix, factor := range suffixes {
 		if strings.HasSuffix(sizeStr, suffix) {
 			trimSuffix := strings.TrimSuffix(sizeStr, suffix)

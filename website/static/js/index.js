@@ -1,10 +1,6 @@
 "use strict";
 
 
-// 如果连续25次请求失败,则清除定时器
-var usageReqCounter = 0;
-var infoReqCounter = 0;
-
 /**
  * Initializes uptime, labels and chart values
  */
@@ -35,23 +31,13 @@ function indexInitialization() {
   infoXHR = new XMLHttpRequest();
 
 
-  let usageInterval = setInterval(function () {
+  setInterval(function () {
     sendUsageRequest();
   }, 1500);
 
-  let infoInterval = setInterval(function () {
+  setInterval(function () {
     sendInfoRequest();
   }, 2000);
-
-  //根据请求失败的次数 触发阈值后移除定时器
-  setInterval(function () {
-    if (usageReqCounter >= 25){
-      clearInterval(usageInterval);
-    }
-    if (infoReqCounter >=25){
-      clearInterval(infoInterval)
-    }
-  },2000)
 
 
   firstControl.addEventListener("click", function (event) {
@@ -110,8 +96,6 @@ function sendUsageRequest() {
       let response = JSON.parse(this.response);
       labelsTick(response);
       chartTick(response);
-    } else {
-      usageReqCounter += 1
     }
 
   }
@@ -137,8 +121,6 @@ function sendInfoRequest() {
       hours.innerHTML = response.uptime.hours;
       minutes.innerHTML = response.uptime.minutes;
       seconds.innerHTML = response.uptime.seconds;
-    }else {
-      infoReqCounter += 1
     }
   }
 
