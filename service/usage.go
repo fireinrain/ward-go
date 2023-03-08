@@ -4,6 +4,7 @@ import (
 	"errors"
 	"github.com/shirou/gopsutil/cpu"
 	"github.com/shirou/gopsutil/disk"
+	"github.com/shirou/gopsutil/load"
 	"github.com/shirou/gopsutil/mem"
 	"log"
 	"os"
@@ -22,9 +23,14 @@ const PlatformDarwin = 2
 // ServerUsageInfo
 // @Description: 服务器资源使用信息
 type ServerUsageInfo struct {
+	//cpu 占用
 	Processor string `json:"processor"`
-	Ram       string `json:"ram"`
-	Storage   string `json:"storage"`
+	//ram 占用
+	Ram string `json:"ram"`
+	//存储占用
+	Storage string `json:"storage"`
+	//整体负载
+	Loads []string `json:"loads"`
 }
 
 // GetUsageInfoService
@@ -108,6 +114,17 @@ func GetUsageInfoService() ServerUsageInfo {
 		//log.Println("current platform is linux or osx")
 		//diskUsage := strconv.FormatFloat(diskInfo.UsedPercent, 'f', 0, 64)
 		usageInfo.Storage = diskUsage
+	}
+
+	//负载
+	avgState, err := load.Avg()
+	if err != nil {
+		log.Println("get load avg failed:", err)
+	} else {
+		usageInfo.Loads = []string{
+			strconv.FormatFloat(avgState.Load1, 'f', 2, 64),
+			strconv.FormatFloat(avgState.Load5, 'f', 2, 64),
+			strconv.FormatFloat(avgState.Load15, 'f', 2, 64)}
 	}
 	return usageInfo
 }
