@@ -33,7 +33,7 @@
                             <div class = "hw-logo first"></div>
                             <div class = "label-hw-info">
                                 <div class = "hw-type">Processor</div>
-                                <div class = "hw-name" >text = "${info.processor.name"</div>
+                                <div class = "hw-name" >info.processor.name</div>
                             </div>
                         </div>
                         <div class = "usage">
@@ -68,9 +68,9 @@
                                 </div>
                             </div>
                             <div class = "detailed-hw-info">
-                                <div class = "first" >text = "${info.processor.coreCount"</div>
-                                <div id = "currentClockSpeed" class = "second" >text = "${info.processor.clockSpeed"</div>
-                                <div class = "third" >text = "${info.processor.bitDepth"</div>
+                                <div class = "first" >info.processor.coreCount</div>
+                                <div class = "second" id = "currentClockSpeed" >info.processor.clockSpeed</div>
+                                <div class = "third" >info.processor.bitDepth</div>
                             </div>
                             <div class = "dividers">
                                 <div class = "first"></div>
@@ -85,7 +85,7 @@
                             <div class = "hw-logo second"></div>
                             <div class = "label-hw-info">
                                 <div class = "hw-type">Machine</div>
-                                <div class = "hw-name" >text = "${info.machine.operatingSystem"</div>
+                                <div class = "hw-name" >info.machine.operatingSystem</div>
                             </div>
                         </div>
                         <div class = "usage">
@@ -120,9 +120,9 @@
                                 </div>
                             </div>
                             <div class = "detailed-hw-info">
-                                <div class = "first" >text = "${info.machine.totalRam"</div>
-                                <div class = "second" >text = "${info.machine.ramTypeOrOSBitDepth"</div>
-                                <div id = "currentProcCount" class = "third" >text = "${info.machine.procCount"</div>
+                                <div class = "first" >info.machine.totalRam</div>
+                                <div class = "second" >info.machine.ramTypeOrOSBitDepth</div>
+                                <div class = "third" id = "currentProcCount" >info.machine.procCount</div>
                             </div>
                             <div class = "dividers">
                                 <div class = "first"></div>
@@ -137,7 +137,7 @@
                             <div class = "hw-logo third"></div>
                             <div class = "label-hw-info">
                                 <div class = "hw-type">Storage</div>
-                                <div class = "hw-name" >text = "${info.storage.mainStorage"</div>
+                                <div class = "hw-name" >info.storage.mainStorage</div>
                             </div>
                         </div>
                         <div class = "usage">
@@ -172,9 +172,9 @@
                                 </div>
                             </div>
                             <div class = "detailed-hw-info">
-                                <div id = "currentTotalStorage" class = "first" >text = "${info.storage.total"</div>
-                                <div id = "currentDiskCount" class = "second" >text = "${info.storage.diskCount"</div>
-                                <div class = "third" >text = "${info.storage.swapAmount"</div>
+                                <div class = "first" id = "currentTotalStorage" >info.storage.total</div>
+                                <div class = "second" id = "currentDiskCount" >info.storage.diskCount</div>
+                                <div class = "third" >info.storage.swapAmount</div>
                             </div>
                             <div class = "dividers">
                                 <div class = "first"></div>
@@ -225,10 +225,10 @@
                             </div>
                             <div class = "uptime-rectangle-grid">
                                 <div class = "values-grid">
-                                    <div><p id = "uptime-days" >text = "${info.uptime.days}"</p></div>
-                                    <div><p id = "uptime-hours" >text = "${info.uptime.hours}"</p></div>
-                                    <div><p id = "uptime-minutes" >text = "${info.uptime.minutes}"</p></div>
-                                    <div><p id = "uptime-seconds" >text = "${info.uptime.seconds}"</p></div>
+                                    <div><p id = "uptime-days" >info.uptime.days</p></div>
+                                    <div><p id = "uptime-hours" >info.uptime.hours</p></div>
+                                    <div><p id = "uptime-minutes" >info.uptime.minutes</p></div>
+                                    <div><p id = "uptime-seconds" >info.uptime.seconds</p></div>
                                 </div>
                                 <div class = "labels-grid">
                                     <div>DAYS</div>
@@ -246,7 +246,7 @@
                             <div class = "hw-logo fourth"></div>
                             <div class = "label-hw-info">
                                 <div class = "hw-type">Network</div>
-                                <div class = "hw-name" >text = "${info.storage.mainStorage"</div>
+                                <div class = "hw-name" >info.network.network1</div>
                             </div>
                         </div>
                         <div class = "usage">
@@ -264,7 +264,7 @@
                                     </div>
                                     <div class = "usage-postfix">%</div>
                                 </div>
-                                <div class = "info-label">STORAGE USAGE</div>
+                                <div class = "info-label">NETWORK USAGE</div>
                                 <div class = "usage-underline third"></div>
                             </div>
                         </div>
@@ -281,9 +281,9 @@
                                 </div>
                             </div>
                             <div class = "detailed-hw-info">
-                                <div class = "first" id = "network1" >text = "${info.storage.total"</div>
-                                <div class = "second" id = "network2" >text = "${info.storage.diskCount"</div>
-                                <div class = "third" >text = "${info.storage.swapAmount"</div>
+                                <div class = "first" id = "network1" >info.network.total</div>
+                                <div class = "second" id = "network2" >info.network.diskCount</div>
+                                <div class = "third" >info.network.swapAmount</div>
                             </div>
                             <div class = "dividers">
                                 <div class = "first"></div>
@@ -297,8 +297,8 @@
                         <div class = "header">
                             <div class = "hw-logo fifth"></div>
                             <div class = "label-hw-info">
-                                <div class = "hw-type">Weather</div>
-                                <div class = "hw-name" >text = "${info.storage.mainStorage"</div>
+                                <div class = "hw-type">Loads/Location</div>
+                                <div class = "hw-name" >info.loads.location</div>
                             </div>
                         </div>
                         <div class = "usage">
@@ -316,7 +316,7 @@
                                     </div>
                                     <div class = "usage-postfix">%</div>
                                 </div>
-                                <div class = "info-label">STORAGE USAGE</div>
+                                <div class = "info-label">LOADS USAGE</div>
                                 <div class = "usage-underline third"></div>
                             </div>
                         </div>
@@ -333,9 +333,9 @@
                                 </div>
                             </div>
                             <div class = "detailed-hw-info">
-                                <div class = "first" id = "weather1" >text = "${info.storage.total"</div>
-                                <div class = "second" id = "weather2" >text = "${info.storage.diskCount"</div>
-                                <div class = "third" >text = "${info.storage.swapAmount"</div>
+                                <div class = "first" id = "loads1" >info.loads.total</div>
+                                <div class = "second" id = "load2" >info.loads.diskCount</div>
+                                <div class = "third" >info.loads.swapAmount</div>
                             </div>
                             <div class = "dividers">
                                 <div class = "first"></div>
@@ -364,7 +364,7 @@
                         </div>
                         <script type = "text/javascript"> chartInitialization(); </script>
                     </div>
-                    <div class = "text-center" id = "project-version" >text = "${info.project.version}"</div>
+                    <div class = "text-center" id = "project-version" >info.project.version</div>
                 </div>
             </div>
         </div>
