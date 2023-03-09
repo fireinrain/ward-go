@@ -5,8 +5,12 @@ import (
 	"testing"
 )
 
-func TestGetGeoLocation(t *testing.T) {
-
+func TestGetLocationInfoByIPv4(t *testing.T) {
+	pv4, err := GetLocationInfoByIPv4("216.127.164.234")
+	if err != nil {
+		fmt.Println(err.Error())
+	}
+	fmt.Printf("%v\n", *pv4)
 }
 
 func TestGetLocationInfoByIpApi(t *testing.T) {

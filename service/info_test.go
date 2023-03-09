@@ -50,8 +50,3 @@ func TestMapKeyExist(t *testing.T) {
 		fmt.Println("key1 不存在")
 	}
 }
-
-func TestGetLocationInfoByIPv4(t *testing.T) {
-	iPv4 := GetLocationInfoByIPv4("216.127.164.234")
-	fmt.Printf("%v\n", iPv4)
-}
