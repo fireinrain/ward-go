@@ -5,7 +5,6 @@ import (
 	"errors"
 	"fmt"
 	"github.com/PuerkitoBio/goquery"
-	"io"
 	"log"
 	"net"
 	"net/http"
@@ -40,12 +39,12 @@ type LocationInfo struct {
 	Longitude string `json:"longitude"`
 }
 
-// GetLocationInfoByIPv4
+// GetLocationInfoByGeoDataTool
 //
 //	@Description: 根据ip查询地理信息
 //	@param ipv4
 //	@return LocationInfo
-func GetLocationInfoByIPv4(ipv4 string) (*LocationInfo, error) {
+func GetLocationInfoByGeoDataTool(ipv4 string) (*LocationInfo, error) {
 	normalIpv4Address := CheckNormalIpv4Address(ipv4)
 	if !normalIpv4Address {
 		return nil, errors.New("args not a valid ipv4 address: " + ipv4)
@@ -70,24 +69,33 @@ func GetLocationInfoByIPv4(ipv4 string) (*LocationInfo, error) {
 	resp, err := client.Do(req)
 	defer resp.Body.Close()
 
-	// Read the response body into a byte slice
-	body, err := io.ReadAll(resp.Body)
-	fmt.Println(string(body))
-
-	if err != nil {
-		log.Println("get location by geodatatool error: ", err)
-		return nil, errors.New("get location by geodatatool error: " + err.Error())
-	}
-	doc, err := goquery.NewDocumentFromReader(strings.NewReader(string(body)))
+	dom, err := goquery.NewDocumentFromReader(resp.Body)
 	if err != nil {
 		log.Println("parse geodatatool document error: ", err)
 		return locationInfo, errors.New("parse geodatatool document error: " + err.Error())
 	}
-	//抽取
-	val, _ := doc.Find("//script").First().Attr("src")
+	var resultList []string
 
-	// Print the response body as a string
-	fmt.Println(val)
+	dom.Find("body > div.container > div > div > div > div > div > div.col-md-4.column > div.sidebar-data.hidden-xs.hidden-sm > div > span:nth-child(2)").Each(func(i int, selection *goquery.Selection) {
+		cleanStr := strings.TrimSpace(selection.Text())
+		resultList = append(resultList, cleanStr)
+		//fmt.Println(cleanStr)
+	})
+	country := resultList[3]
+	countryStrs := strings.Split(country, " ")
+	country = countryStrs[0]
+	resultList[3] = country
+
+	locationInfo.HostName = resultList[0]
+	locationInfo.IpAddress = resultList[1]
+	locationInfo.CountryName = resultList[2]
+	locationInfo.CountryCode = resultList[3]
+	locationInfo.CountryFlag = GetFlagEmojiSimple(resultList[3])
+	locationInfo.RegionName = resultList[4]
+	locationInfo.CityName = resultList[5]
+	locationInfo.PostCode = resultList[6]
+	locationInfo.Latitude = resultList[7]
+	locationInfo.Longitude = resultList[8]
 	return locationInfo, nil
 }
 
