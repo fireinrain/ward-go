@@ -90,6 +90,12 @@ type IPApiInfo struct {
 	As          string  `json:"as"`
 }
 
+// GetLocationInfoByIpApi
+//
+//	@Description: 通过ipapi.com获取ip的location信息
+//	@param ipv4
+//	@return *IPApiInfo
+//	@return error
 func GetLocationInfoByIpApi(ipv4 string) (*IPApiInfo, error) {
 	normalIpv4Address := CheckNormalIpv4Address(ipv4)
 	if !normalIpv4Address {
