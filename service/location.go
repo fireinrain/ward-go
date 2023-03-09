@@ -7,6 +7,7 @@ import (
 	"github.com/PuerkitoBio/goquery"
 	"io"
 	"log"
+	"net"
 	"net/http"
 	"regexp"
 	"strings"
@@ -110,16 +111,16 @@ type IPApiInfo struct {
 // GetLocationInfoByIpApi
 //
 //	@Description: 通过ipapi.com获取ip的location信息
-//	@param ipv4
+//	@param ipStr support ipv4 or ipv6
 //	@return *IPApiInfo
 //	@return error
-func GetLocationInfoByIpApi(ipv4 string) (*IPApiInfo, error) {
-	normalIpv4Address := CheckNormalIpv4Address(ipv4)
+func GetLocationInfoByIpApi(ipStr string) (*IPApiInfo, error) {
+	normalIpv4Address := CheckStrIsIpAddress(ipStr)
 	if !normalIpv4Address {
-		return nil, errors.New("args not a valid ipv4 address: " + ipv4)
+		return nil, errors.New("args not a valid ipStr address: " + ipStr)
 	}
 	//TODO warn I use the free pricing mode,so request does not have ssl or https protocol
-	var requestUrl = "http://ip-api.com/json/" + ipv4
+	var requestUrl = "http://ip-api.com/json/" + ipStr
 	req, err := http.NewRequest("GET", requestUrl, nil)
 	if err != nil {
 		log.Println("get location by ip-api error: ", err)
@@ -196,4 +197,39 @@ func CheckNormalIpv4Address(someString string) bool {
 		return true
 	}
 	return false
+}
+
+// CheckNormalIpv6Address
+//
+//	@Description: 判断字符串是否是一个合法的ipv6地址
+//	@param someString
+//	@return bool
+func CheckNormalIpv6Address(someString string) bool {
+	ipv6Regex := regexp.MustCompile(`(([0-9a-fA-F]{1,4}:){7,7}[0-9a-fA-F]{1,4}|([0-9a-fA-F]{1,4}:){1,7}:|([0-9a-fA-F]{1,4}:){1,6}:[0-9a-fA-F]{1,4}|([0-9a-fA-F]{1,4}:){1,5}(:[0-9a-fA-F]{1,4}){1,2}|([0-9a-fA-F]{1,4}:){1,4}(:[0-9a-fA-F]{1,4}){1,3}|([0-9a-fA-F]{1,4}:){1,3}(:[0-9a-fA-F]{1,4}){1,4}|([0-9a-fA-F]{1,4}:){1,2}(:[0-9a-fA-F]{1,4}){1,5}|[0-9a-fA-F]{1,4}:((:[0-9a-fA-F]{1,4}){1,6})|:((:[0-9a-fA-F]{1,4}){1,7}|:)|fe80:(:[0-9a-fA-F]{0,4}){0,4}%[0-9a-zA-Z]{1,}|::(ffff(:0{1,4}){0,1}:){0,1}((25[0-5]|(2[0-4]|1{0,1}[0-9]){0,1}[0-9])\.){3,3}(25[0-5]|(2[0-4]|1{0,1}[0-9]){0,1}[0-9])|([0-9a-fA-F]{1,4}:){1,4}:((25[0-5]|(2[0-4]|1{0,1}[0-9]){0,1}[0-9])\.){3,3}(25[0-5]|(2[0-4]|1{0,1}[0-9]){0,1}[0-9]))`)
+
+	if ipv6Regex.MatchString(someString) {
+		return true
+	}
+	return false
+}
+
+// CheckNormalIpAddress
+//
+//	@Description: 判断字符串是否是合法ip地址
+//	@param someString
+//	@return bool
+func CheckNormalIpAddress(someString string) bool {
+	//"71a993e55ea64df29c3caa7c094f7099"
+	//"https://api.ipgeolocation.io/ipgeo?apiKey=API_KEY&ip=8.8.8.8"
+	return !(CheckNormalIpv4Address(someString) && CheckNormalIpv6Address(someString))
+}
+
+// CheckStrIsIpAddress
+//
+//	@Description: 判断str是否为合格的ip str
+//	@param str
+//	@return bool
+func CheckStrIsIpAddress(str string) bool {
+	ip := net.ParseIP(str)
+	return ip != nil
 }
