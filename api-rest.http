@@ -10,3 +10,22 @@ Content-Type: application/json
 
 ###
 GET https://www.geodatatool.com/zh/?ip=216.127.164.234
+
+###
+GET http://ip-api.com/json/216.127.164.234
+Accept: */*
+Accept-Encoding: gzip, deflate, br
+Accept-Language: zh,en;q=0.9,zh-TW;q=0.8,zh-CN;q=0.7,ja;q=0.6
+Cache-Control: no-cache
+Connection: keep-alive
+Host: demo.ip-api.com
+Origin: https://ip-api.com
+Pragma: no-cache
+Referer: https://ip-api.com/
+sec-ch-ua: "Not?A_Brand";v="8", "Chromium";v="108", "Google Chrome";v="108"
+sec-ch-ua-mobile: ?0
+sec-ch-ua-platform: "macOS"
+Sec-Fetch-Dest: empty
+Sec-Fetch-Mode: cors
+Sec-Fetch-Site: same-site
+User-Agent: Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/108.0.0.0 Safari/537.36
