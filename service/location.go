@@ -13,6 +13,8 @@ import (
 	"strings"
 )
 
+const IpGeoLocationApiKey = "71a993e55ea64df29c3caa7c094f7099"
+
 //https://www.geodatatool.com/ data
 
 type LocationInfo struct {
@@ -210,8 +212,7 @@ func GetIpgeolocationInfo(ipString string) (*IpgeolocationInfo, error) {
 	if !normalIpv4Address {
 		return nil, errors.New("args not a valid ipStr address: " + ipString)
 	}
-	//TODO warn I use the free pricing mode,so request does not have ssl or https protocol
-	var requestUrl = "https://api.ipgeolocation.io/ipgeo?apiKey=71a993e55ea64df29c3caa7c094f7099&ip=" + ipString
+	var requestUrl = fmt.Sprintf("https://api.ipgeolocation.io/ipgeo?apiKey=%s&ip=%s", IpGeoLocationApiKey, ipString)
 	req, err := http.NewRequest("GET", requestUrl, nil)
 	if err != nil {
 		log.Println("get location by ipgeolocation error: ", err)
