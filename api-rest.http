@@ -12,7 +12,7 @@ Content-Type: application/json
 GET https://www.geodatatool.com/zh/?ip=216.127.164.234
 
 ###
-GET http://ip-api.com/json/216.127.164.234
+GET https://ip-api.com/json/216.127.164.234
 Accept: */*
 Accept-Encoding: gzip, deflate, br
 Accept-Language: zh,en;q=0.9,zh-TW;q=0.8,zh-CN;q=0.7,ja;q=0.6
