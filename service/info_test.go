@@ -45,8 +45,13 @@ func TestGetServerInfo(t *testing.T) {
 func TestMapKeyExist(t *testing.T) {
 	dict := map[string]int{"key1": 1, "key2": 2}
 	if value, ok := dict["key1"]; ok {
-		fmt.Printf(string(value))
+		fmt.Println(value)
 	} else {
 		fmt.Println("key1 不存在")
 	}
+}
+
+func TestGetLocationInfoByIPv4(t *testing.T) {
+	iPv4 := GetLocationInfoByIPv4("216.127.164.234")
+	fmt.Printf("%v\n", iPv4)
 }

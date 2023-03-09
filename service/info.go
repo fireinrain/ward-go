@@ -2,10 +2,14 @@ package service
 
 import (
 	"fmt"
+	"github.com/PuerkitoBio/goquery"
 	"github.com/shirou/gopsutil/cpu"
 	"github.com/shirou/gopsutil/host"
 	"github.com/shirou/gopsutil/mem"
+
+	"io"
 	"log"
+	"net/http"
 	"os/exec"
 	"regexp"
 	"runtime"
@@ -18,6 +22,8 @@ type ServerInfo struct {
 	Processor Processor `json:"processor"`
 	Machine   Machine   `json:"machine"`
 	Storage   Storage   `json:"storage"`
+	Network   Network   `json:"network"`
+	Location  Location  `json:"location"`
 	Uptime    Uptime    `json:"uptime"`
 	Setup     Setup     `json:"setup"`
 	Project   Project   `json:"project"`
@@ -40,6 +46,19 @@ type Storage struct {
 	Total       string `json:"total"`
 	DiskCount   string `json:"diskCount"`
 	SwapAmount  string `json:"swapAmount"`
+}
+type Network struct {
+	UploadData     string `json:"uploadData"`
+	DownloadData   string `json:"downloadData"`
+	UploadSpeed    string `json:"uploadSpeed"`
+	DownloadSpeed  string `json:"downloadSpeed"`
+	TCPConnections string `json:"tcpConnections"`
+	UDPConnections string `json:"udpConnections"`
+}
+type Location struct {
+	Country         string `json:"country"`
+	CountryFlag     string `json:"countryFlag"`
+	CurrentDateTime string `json:"currentDateTime"`
 }
 type Uptime struct {
 	Days    string `json:"days"`
@@ -530,4 +549,60 @@ func Convert2EqualGbSize(sizeStr string) (float64, error) {
 		}
 	}
 	return 0, fmt.Errorf("invalid size suffix")
+}
+
+type LocationInfo struct {
+	//主机名称
+	HostName string `json:"hostName"`
+	//Ip地址
+	IpAddress string `json:"ipAddress"`
+	//国家
+	CountryName string `json:"countryName"`
+	//国家代码
+	CountryCode string `json:"countryCode"`
+	//国旗标志
+	CountryFlag string `json:"countryFlag"`
+	//地区
+	RegionName string `json:"regionName"`
+	//城市
+	CityName string `json:"cityName"`
+	//邮编
+	PostCode string `json:"postCode"`
+	//经度
+	Latitude string `json:"latitude"`
+	//纬度
+	Longitude string `json:"longitude"`
+}
+
+// GetLocationInfoByIPv4
+//
+//	@Description: 根据ip查询地理信息
+//	@param ipv4
+//	@return LocationInfo
+func GetLocationInfoByIPv4(ipv4 string) LocationInfo {
+	locationInfo := LocationInfo{}
+	resp, err := http.Get("https://www.geodatatool.com/en/?ip=" + ipv4)
+	if err != nil {
+		log.Println("get location by ip error: ", err)
+		return locationInfo
+	}
+	defer resp.Body.Close()
+
+	// Read the response body into a byte slice
+	body, err := io.ReadAll(resp.Body)
+	if err != nil {
+		fmt.Println("get location by ip error: ", err)
+		return locationInfo
+	}
+	doc, err := goquery.NewDocumentFromReader(strings.NewReader(string(body)))
+	if err != nil {
+		log.Println("request getdata failed: ", err)
+		return locationInfo
+	}
+	//抽取
+	val, _ := doc.Find("//script").First().Attr("src")
+
+	// Print the response body as a string
+	fmt.Println(val)
+	return locationInfo
 }
