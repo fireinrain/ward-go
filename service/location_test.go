@@ -27,6 +27,14 @@ func TestGetLocationInfoByIpApi(t *testing.T) {
 
 }
 
+func TestGetIpgeolocationInfo(t *testing.T) {
+	info, err := GetIpgeolocationInfo("208.95.112.1")
+	if err != nil {
+		fmt.Println(err)
+	}
+	fmt.Printf("info: %v \n", info)
+}
+
 func TestGetFlagEmoji(t *testing.T) {
 	emoji := GetFlagEmoji("US")
 	fmt.Println(emoji)
