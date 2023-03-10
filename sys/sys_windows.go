@@ -6,17 +6,28 @@ package sys
 import (
 	"errors"
 	"fmt"
+	"github.com/shirou/gopsutil/net"
 	"os/exec"
 	"strconv"
 	"strings"
 )
 
 func GetTCPCount() (int, error) {
-	return getActiveNetworkPorts("TCP")
+	stats, err := net.Connections("tcp")
+	if err != nil {
+		return 0, err
+	}
+	return len(stats), nil
+	//return getActiveNetworkPorts("TCP")
 }
 
 func GetUDPCount() (int, error) {
-	return getActiveNetworkPorts("UDP")
+	stats, err := net.Connections("udp")
+	if err != nil {
+		return 0, err
+	}
+	return len(stats), nil
+	//return getActiveNetworkPorts("UDP")
 }
 
 func getActiveNetworkPorts(portType string) (int, error) {
