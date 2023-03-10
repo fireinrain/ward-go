@@ -19,7 +19,7 @@ func GetUDPCount() (int, error) {
 	return getActiveNetworkPorts("UDP")
 }
 
-func getActiveNetworkPorts(portType string) (int error) {
+func getActiveNetworkPorts(portType string) (int, error) {
 	cmdStr := fmt.Sprintf("powershell networkstat -an | findstr %s | Measure-Object -Line | Select -ExpandProperty Lines", portType)
 	out, err := exec.Command(cmdStr).Output()
 	if err != nil {
