@@ -6,19 +6,16 @@ import (
 	"github.com/shirou/gopsutil/cpu"
 	"github.com/shirou/gopsutil/host"
 	"github.com/shirou/gopsutil/mem"
-	psnet "github.com/shirou/gopsutil/net"
 	"io"
+	"log"
 	"net"
 	"net/http"
-	"time"
-	"ward-go/sys"
-
-	"log"
 	"os/exec"
 	"regexp"
 	"runtime"
 	"strconv"
 	"strings"
+	"time"
 	"ward-go/config"
 )
 
@@ -180,35 +177,7 @@ func GetServerInfo() ServerInfo {
 		serverInfo.Storage = driveInfo
 	}
 	//网络相关
-	ioStats, err := psnet.IOCounters(false)
-	if err != nil {
-		log.Println("get io counters failed:", err)
-	} else if len(ioStats) > 0 {
-		ioStat := ioStats[0]
-		serverInfo.Network.UploadData = strconv.FormatUint(ioStat.BytesSent, 10)
-		serverInfo.Network.DownloadData = strconv.FormatUint(ioStat.BytesRecv, 10)
-
-		duration := time.Now().Sub(serverInfo.TimeStamp)
-		_ = float64(duration) / float64(time.Second)
-		//up := uint64(float64(status.NetTraffic.Sent-lastStatus.NetTraffic.Sent) / seconds)
-		//down := uint64(float64(status.NetTraffic.Recv-lastStatus.NetTraffic.Recv) / seconds)
-		//serverInfo.Network.UploadSpeed = up
-		//serverInfo.Network.DownloadSpeed = down
-	} else {
-		log.Println("can not find io counters")
-	}
-
-	tcpCount, err := sys.GetTCPCount()
-	serverInfo.Network.TCPConnections = strconv.Itoa(tcpCount)
-	if err != nil {
-		log.Println("get tcp connections failed:", err)
-	}
-
-	udpCount, err := sys.GetUDPCount()
-	serverInfo.Network.UDPConnections = strconv.Itoa(udpCount)
-	if err != nil {
-		log.Println("get udp connections failed:", err)
-	}
+	serverInfo.Network = networkStatus.CurNetStatus.GetReadableStr()
 	//地区相关
 	if serverInfo.Location.CountryFlag == "" ||
 		serverInfo.Location.Country == "" ||
