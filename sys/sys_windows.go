@@ -20,7 +20,7 @@ func GetUDPCount() (int, error) {
 }
 
 func getActiveNetworkPorts(portType string) (int, error) {
-	cmdStr := fmt.Sprintf("powershell networkstat -an | findstr %s | Measure-Object -Line | Select -ExpandProperty Lines", portType)
+	cmdStr := fmt.Sprintf("powershell netstat -an | findstr %s | Measure-Object -Line | Select -ExpandProperty Lines", portType)
 	out, err := exec.Command(cmdStr).Output()
 	if err != nil {
 		fmt.Printf("error running powershell: %v\n", err)
