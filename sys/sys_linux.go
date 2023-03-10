@@ -31,7 +31,6 @@ func getLinesNum(filename string) (int, error) {
 			buffPosition += i + 1
 			sum++
 		}
-
 		if err == io.EOF {
 			return sum, nil
 		} else if err != nil {
