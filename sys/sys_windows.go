@@ -24,7 +24,7 @@ func getActiveNetworkPorts(portType string) (int, error) {
 	out, err := exec.Command(cmdStr).Output()
 	if err != nil {
 		fmt.Printf("error running powershell: %v\n", err)
-		return 0, errors.New("error running powershell: " + err)
+		return 0, errors.New("error running powershell: " + err.Error())
 	}
 	s := string(out)
 	space := strings.TrimSpace(s)
