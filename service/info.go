@@ -1,10 +1,15 @@
 package service
 
 import (
+	"errors"
 	"fmt"
 	"github.com/shirou/gopsutil/cpu"
 	"github.com/shirou/gopsutil/host"
 	"github.com/shirou/gopsutil/mem"
+	"io"
+	"net"
+	"net/http"
+	"time"
 
 	"log"
 	"os/exec"
@@ -54,7 +59,10 @@ type Network struct {
 }
 type Location struct {
 	Country         string `json:"country"`
+	CountryCode     string `json:"countryCode"`
 	CountryFlag     string `json:"countryFlag"`
+	Timezone        string `json:"timezone"`
+	TimezoneOffset  string `json:"TimezoneOffset"`
 	CurrentDateTime string `json:"currentDateTime"`
 }
 type Uptime struct {
@@ -167,6 +175,49 @@ func GetServerInfo() ServerInfo {
 		driveInfo := GetMainHardDriveInfo()
 		serverInfo.Storage = driveInfo
 	}
+	//网络相关
+
+	//地区相关
+	if serverInfo.Location.CountryFlag == "" ||
+		serverInfo.Location.Country == "" ||
+		serverInfo.Location.CountryCode == "" ||
+		serverInfo.Location.Timezone == "" ||
+		serverInfo.Location.TimezoneOffset == "" {
+		//获取当前isp ip
+		ispip, err := GetMachineISPIP()
+		if err != nil {
+			log.Println("get machine isp ip error: " + err.Error())
+		} else {
+			geoLocation, err := GetIpgeolocationInfo(ispip)
+			if err != nil {
+				log.Println("get ipgeolocation info error: " + err.Error())
+			} else {
+				serverInfo.Location.Country = geoLocation.CountryName
+				serverInfo.Location.CountryFlag = GetFlagEmojiSimple(geoLocation.CountryName)
+				serverInfo.Location.CountryCode = geoLocation.CountryCode2
+				serverInfo.Location.Timezone = geoLocation.TimeZone.Name
+				serverInfo.Location.TimezoneOffset = strconv.Itoa(geoLocation.TimeZone.Offset)
+			}
+		}
+	}
+	//获取当前时区，然后根据时区获取时间
+	if serverInfo.Location.Timezone == "" || serverInfo.Location.TimezoneOffset == "" {
+		//设置当前的时间为服务器获取的时间
+		currentTime := time.Now()
+		formatDateTime := currentTime.Format("2006-01-02 15:04:05")
+		serverInfo.Location.CurrentDateTime = formatDateTime
+	} else {
+		//设置当前时间为服务器所在地区的当前时间
+		location, err := time.LoadLocation(serverInfo.Location.Timezone)
+		if err != nil {
+			log.Println("get location error: " + err.Error())
+		} else {
+			locationTime := time.Now().In(location)
+			format := locationTime.Format("2006-01-02 15:04:05")
+			serverInfo.Location.CurrentDateTime = format
+		}
+	}
+
 	//动态变化
 	host, err := host.Info()
 	if err != nil {
@@ -546,4 +597,64 @@ func Convert2EqualGbSize(sizeStr string) (float64, error) {
 		}
 	}
 	return 0, fmt.Errorf("invalid size suffix")
+}
+
+// GetMachineAllIps
+//
+//	@Description: 获取机器所有的ip
+//	@return []string
+func GetMachineAllIps() ([]string, error) {
+	result := []string{}
+	addrs, err := net.InterfaceAddrs()
+	if err != nil {
+		log.Println("get machine all ips error: ", err)
+		return result, errors.New("get machine all ips error: " + err.Error())
+	}
+	for _, addr := range addrs {
+		if ipnet, ok := addr.(*net.IPNet); ok && !ipnet.IP.IsLoopback() {
+			if ipnet.IP.To4() != nil {
+				//log.Println(ipnet.IP.String())
+				result = append(result, ipnet.IP.String())
+			}
+		}
+	}
+	return result, nil
+}
+
+// GetMachineLocalIP
+//
+//	@Description: 获取局域网内机器分配的ip
+//	@return string
+//	@return error
+func GetMachineLocalIP() (string, error) {
+	conn, err := net.Dial("udp", "1.1.1.1:80")
+	if err != nil {
+		log.Println("error getting ip address: ", err)
+		return "", errors.New("error getting ip address: " + err.Error())
+	}
+	defer conn.Close()
+	localAddr := conn.LocalAddr().(*net.UDPAddr)
+	log.Println("your ip address is:", localAddr.IP)
+	return localAddr.IP.String(), nil
+}
+
+// GetMachineISPIP
+//
+//	@Description: 获取公网ip
+//	@return string
+//	@return error
+func GetMachineISPIP() (string, error) {
+	//请求ifconfig.me 获得结果
+	resp, err := http.Get("https://ifconfig.me")
+	if err != nil {
+		log.Println("get isp ip address error: ", err.Error())
+		return "", errors.New("get isp ip address error: " + err.Error())
+	}
+	all, err := io.ReadAll(resp.Body)
+	if err != nil {
+		log.Println("get isp ip address error: ", err.Error())
+		return "", errors.New("get isp ip address error: " + err.Error())
+	}
+	result := strings.TrimSpace(string(all))
+	return result, nil
 }
