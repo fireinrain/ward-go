@@ -33,11 +33,11 @@ function indexInitialization() {
 
   setInterval(function () {
     sendUsageRequest();
-  }, 1500);
+  }, 1000);
 
   setInterval(function () {
     sendInfoRequest();
-  }, 2000);
+  }, 1000);
 
 
   firstControl.addEventListener("click", function (event) {
