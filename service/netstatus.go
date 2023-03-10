@@ -78,6 +78,10 @@ func init() {
 	go recordNetworkStatus(networkStatus)
 }
 
+// recordNetworkStatus
+//
+//	@Description: 记录网络状态数据
+//	@param network
 func recordNetworkStatus(network *NetworkStatus) {
 	for {
 		now := time.Now()
@@ -117,6 +121,11 @@ func recordNetworkStatus(network *NetworkStatus) {
 	}
 }
 
+// GetReadableStr
+//
+//	@Description: 获取可读的网络数据表示
+//	@receiver network
+//	@return Network
 func (network *NetStatus) GetReadableStr() Network {
 	return Network{
 		UploadData:     FindPropertyNetUnitStr(network.UploadDataSize),
@@ -128,12 +137,24 @@ func (network *NetStatus) GetReadableStr() Network {
 	}
 }
 
+// FindPropertyNetUnitStr
+//
+//	@Description: 寻找合适的网络数据单位
+//	@param netUnitUint
+//	@return string
 func FindPropertyNetUnitStr(netUnitUint uint64) string {
 	f := float64(netUnitUint)
 	for index, value := range unitConversion {
-		if f/value.Value <= 0 && (f/unitConversion[index+1].Value) > 0 {
-			u := f / unitConversion[index+1].Value
-			return strconv.FormatFloat(u, 'f', 1, 64) + " " + value.Name
+		bigValue := f / value.Value
+		if index == len(unitConversion)-1 {
+			return strconv.FormatFloat(bigValue, 'f', 2, 64) + " " + unitConversion[index].Name
+		}
+		smallValue := f / unitConversion[index+1].Value
+
+		if bigValue > 0 && smallValue <= 1 {
+			result := strconv.FormatFloat(bigValue, 'f', 2, 64)
+			//fmt.Println(result)
+			return result + " " + unitConversion[index].Name
 		}
 	}
 	return strconv.FormatUint(netUnitUint, 10) + " " + unitConversion[0].Name

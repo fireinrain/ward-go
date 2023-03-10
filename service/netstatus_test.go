@@ -2,6 +2,7 @@ package service
 
 import (
 	"fmt"
+	"strconv"
 	"testing"
 )
 
@@ -15,5 +16,19 @@ func TestGetReadableStr(t *testing.T) {
 		UDPConnections:   35,
 	}
 	str := status.GetReadableStr()
+	fmt.Println(str)
+}
+
+func TestGetFloat(t *testing.T) {
+	a := float64(1758)
+	b := float64(1024)
+	f := a / b
+	fmt.Println(f)
+	float := strconv.FormatFloat(f, 'f', 1, 64)
+	fmt.Println(float)
+}
+
+func TestFindPropertyNetUnitStr(t *testing.T) {
+	str := FindPropertyNetUnitStr(123456778)
 	fmt.Println(str)
 }
