@@ -5,6 +5,7 @@ import (
 	"errors"
 	"fmt"
 	"github.com/PuerkitoBio/goquery"
+	"io"
 	"log"
 	"net"
 	"net/http"
@@ -326,4 +327,64 @@ func CheckNormalIpAddress(someString string) bool {
 func CheckStrIsIpAddress(str string) bool {
 	ip := net.ParseIP(str)
 	return ip != nil
+}
+
+// GetMachineAllIps
+//
+//	@Description: 获取机器所有的ip
+//	@return []string
+func GetMachineAllIps() ([]string, error) {
+	result := []string{}
+	addrs, err := net.InterfaceAddrs()
+	if err != nil {
+		log.Println("get machine all ips error: ", err)
+		return result, errors.New("get machine all ips error: " + err.Error())
+	}
+	for _, addr := range addrs {
+		if ipnet, ok := addr.(*net.IPNet); ok && !ipnet.IP.IsLoopback() {
+			if ipnet.IP.To4() != nil {
+				//log.Println(ipnet.IP.String())
+				result = append(result, ipnet.IP.String())
+			}
+		}
+	}
+	return result, nil
+}
+
+// GetMachineLocalIP
+//
+//	@Description: 获取局域网内机器分配的ip
+//	@return string
+//	@return error
+func GetMachineLocalIP() (string, error) {
+	conn, err := net.Dial("udp", "1.1.1.1:80")
+	if err != nil {
+		log.Println("error getting ip address: ", err)
+		return "", errors.New("error getting ip address: " + err.Error())
+	}
+	defer conn.Close()
+	localAddr := conn.LocalAddr().(*net.UDPAddr)
+	log.Println("your ip address is:", localAddr.IP)
+	return localAddr.IP.String(), nil
+}
+
+// GetMachineISPIP
+//
+//	@Description: 获取公网ip
+//	@return string
+//	@return error
+func GetMachineISPIP() (string, error) {
+	//请求ifconfig.me 获得结果
+	resp, err := http.Get("https://ifconfig.me")
+	if err != nil {
+		log.Println("get isp ip address error: ", err.Error())
+		return "", errors.New("get isp ip address error: " + err.Error())
+	}
+	all, err := io.ReadAll(resp.Body)
+	if err != nil {
+		log.Println("get isp ip address error: ", err.Error())
+		return "", errors.New("get isp ip address error: " + err.Error())
+	}
+	result := strings.TrimSpace(string(all))
+	return result, nil
 }
