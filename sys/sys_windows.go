@@ -30,6 +30,13 @@ func GetUDPCount() (int, error) {
 	//return getActiveNetworkPorts("UDP")
 }
 
+// getActiveNetworkPorts
+// issue: 在windows上耗时较长
+//
+//	@Description:
+//	@param portType
+//	@return int
+//	@return error
 func getActiveNetworkPorts(portType string) (int, error) {
 	cmdStr := fmt.Sprintf("netstat -an | findstr '%s' | Measure-Object -Line | Select -ExpandProperty Lines", portType)
 	out, err := exec.Command("powershell", cmdStr).Output()

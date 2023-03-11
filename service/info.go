@@ -4,6 +4,7 @@ import (
 	"errors"
 	"fmt"
 	"github.com/shirou/gopsutil/cpu"
+	"github.com/shirou/gopsutil/disk"
 	"github.com/shirou/gopsutil/host"
 	"github.com/shirou/gopsutil/mem"
 	"io"
@@ -466,7 +467,24 @@ func GetMainHardDriveInfo() Storage {
 		SwapAmount:  "Unknown",
 	}
 	if runtime.GOOS == "windows" {
-
+		partitions, err := disk.Partitions(false)
+		if err != nil {
+			fmt.Println("Error:", err)
+		}
+		for _, partition := range partitions {
+			usage, err := disk.Usage(partition.Mountpoint)
+			if err != nil {
+				fmt.Println("Error:", err)
+				continue
+			}
+			fmt.Println("Device:", partition.Device)
+			fmt.Println("Mountpoint:", partition.Mountpoint)
+			fmt.Println("Filesystem type:", partition.Fstype)
+			fmt.Println("Total size:", usage.Total)
+			fmt.Println("Used space:", usage.Used)
+			fmt.Println("Free space:", usage.Free)
+			fmt.Printf("Usage percentage: %.2f%%\n\n", usage.UsedPercent)
+		}
 	}
 	if runtime.GOOS == "linux" {
 
