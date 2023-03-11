@@ -462,7 +462,59 @@ func GetMainHardDriveInfo() Storage {
 		SwapAmount:  "Unknown",
 	}
 	if runtime.GOOS == "windows" {
+		//MediaType Model                               Size
+		//--------- -----                               ----
+		//HDD       HGST HTS721010A9E630       1000204886016
+		//SSD       SAMSUNG MZNTY128HDHP-000H1  128035676160
+		out, err := exec.Command("powershell", "Get-PhysicalDisk | Select-Object MediaType,Model,Size").Output()
+		if err != nil {
+			fmt.Printf("error running powershell: %v\n", err)
+		} else {
+			pattern := "[0-9]$"
+			var diskPair [][]string
+			lines := strings.Split(string(out), "\n")
+			for _, line := range lines {
+				line = strings.TrimSpace(line)
+				matched, _ := regexp.MatchString(pattern, line)
+				if matched {
+					diskInfo := strings.Split(line, " ")
+					var tempDiskInfos []string
+					for _, value := range diskInfo {
+						if value == "" {
+							continue
+						}
+						tempDiskInfos = append(tempDiskInfos, value)
 
+					}
+					disk := []string{strings.TrimSpace(tempDiskInfos[1]), strings.TrimSpace(tempDiskInfos[0]), strings.TrimSpace(tempDiskInfos[3])}
+					diskPair = append(diskPair, disk)
+				}
+			}
+			//计算所有硬盘的总大小
+			var totalSize uint64
+			for _, disk := range diskPair {
+				uintVal, err := strconv.ParseUint(disk[2], 10, 64)
+				if err != nil {
+					log.Println("parse string to uint64 error: " + err.Error())
+				} else {
+					totalSize += uintVal
+				}
+			}
+			//主硬盘
+			uintVal, err := strconv.ParseUint(diskPair[0][2], 10, 64)
+			if err != nil {
+				log.Println("parse string to uint64 error: " + err.Error())
+				//set as default if parse string error
+				uintVal = 0
+			}
+			mainStorageSize := FindPropertyNetUnitStr(uintVal)
+			storage.MainStorage = diskPair[0][0] + "-" + diskPair[0][1] + "-" + mainStorageSize
+			storage.DiskCount = strconv.Itoa(len(diskPair)) + " Disks"
+			storage.Total = FindPropertyNetUnitStr(totalSize)
+			storage.SwapAmount = ""
+
+			return storage
+		}
 	}
 	if runtime.GOOS == "linux" {
 

@@ -147,15 +147,15 @@ func FindPropertyNetUnitStr(netUnitUint uint64) string {
 	for index, value := range unitConversion {
 		bigValue := f / value.Value
 		if index == len(unitConversion)-1 {
-			return strconv.FormatFloat(bigValue, 'f', 2, 64) + " " + unitConversion[index].Name
+			return strconv.FormatFloat(bigValue, 'f', 2, 64) + unitConversion[index].Name
 		}
 		smallValue := f / unitConversion[index+1].Value
 
 		if bigValue > 0 && smallValue <= 1 {
 			result := strconv.FormatFloat(bigValue, 'f', 2, 64)
 			//fmt.Println(result)
-			return result + " " + unitConversion[index].Name
+			return result + unitConversion[index].Name
 		}
 	}
-	return strconv.FormatUint(netUnitUint, 10) + " " + unitConversion[0].Name
+	return strconv.FormatUint(netUnitUint, 10) + unitConversion[0].Name
 }
