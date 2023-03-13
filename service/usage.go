@@ -249,6 +249,7 @@ func GetDiskMountedPath(diskPath string) (string, error) {
 			break
 		}
 	}
+	// TODO dmg包挂载后导致方法出错
 	if mountPoint == "" {
 		log.Println("disk is not currently mounted")
 		return "", errors.New("disk is not currently mounted")

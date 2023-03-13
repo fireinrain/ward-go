@@ -58,7 +58,7 @@ type Location struct {
 	CountryCode     string `json:"countryCode"`
 	CountryFlag     string `json:"countryFlag"`
 	Timezone        string `json:"timezone"`
-	TimezoneOffset  string `json:"TimezoneOffset"`
+	TimezoneOffset  string `json:"timezoneOffset"`
 	CurrentDateTime string `json:"currentDateTime"`
 }
 type Uptime struct {
