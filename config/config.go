@@ -9,7 +9,7 @@ import (
 )
 
 const DefaultPort = 8888
-const ConfigFile = "setup.ini"
+const SetupConfigFile = "setup.ini"
 
 var FirstStartUp = true
 var GlobalConfig ServerConfig
@@ -41,7 +41,7 @@ func init() {
 //	@receiver receiver
 //	@return ServerConfig
 func (receiver ServerConfig) InitServerConfig() ServerConfig {
-	if !IsFileExist(ConfigFile) {
+	if !IsFileExist(SetupConfigFile) {
 		return ServerConfig{
 			Setup: Setup{Port: DefaultPort},
 		}

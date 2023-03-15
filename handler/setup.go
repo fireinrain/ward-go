@@ -50,7 +50,7 @@ func SetUpHandler(c *gin.Context) {
 		}
 	}
 	//写入配置文件
-	config.WriteConfig2File(set.ServerName, set.Theme, set.Port, config.ConfigFile)
+	config.WriteConfig2File(set.ServerName, set.Theme, set.Port, config.SetupConfigFile)
 	config.RefreshServerConfig()
 
 	c.JSON(http.StatusOK, gin.H{
